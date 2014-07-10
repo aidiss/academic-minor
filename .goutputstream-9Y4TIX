@@ -1,0 +1,1925 @@
+
+# coding: utf-8
+
+## Introduction
+
+# Ši užrašų knygutė yra skirta gretutinių studijų analizei. Čia nagrinėjama gretutinių studijų pasirinkimo dinamika, ieškoma dėsningumu. 
+
+# In[2]:
+
+from IPython.display import Image
+Image('http://www6.cityu.edu.hk/projectflame/images/indexikon/withHat.png',width=800) 
+
+
+# In[3]:
+
+Image('http://morphocode.com/wp-content/uploads/2013/07/krzywinski-hiveplot-poster.jpg',width=50)
+
+
+### Background
+
+# Tai yra gretutinės studijos. Sunku nustatyti, kada įvyko pirmieji gretutinių studijų atvejai. Tačiau, gretutinės studijos yra pasaulio mastu atpažįstama akademinės kultūros dalis. Gretutinės studijos pastebimos ir Lietuvos aukštojo mokslo institucijoje. Čia bus nagrinėjamas VDU gretutinių studijų reiškinys.
+# 
+
+## SOME THEORY
+
+# Some considerations.
+
+# Naudosime grafas.
+# (V,E), kur V - viršūnių rinkinys, o E kraštinių rinkinys.
+# $$ V =\{v_1,..., v_5\} $$ 
+# $$ E = \{(v_1, v_2),(v_2, v_5),(v_5, v_5),(v_5, v_4),(v_5, v_4)\}$$ 
+# Supaprastinimo vardan naudosimetokį žymėjimą: $_p,_q$ and $_r$.
+# Tarkime, kad mūsų viršūnės yra trys studijų programos: teisė, politikos mokslai ir istorija. 
+# 
+# p - 'teise', 
+# q - 'politikos_mokslai' and 
+# r - 'istorija'
+
+# Svorio skaičiavimas:
+# 
+# $$D - svoris$$
+# 
+# $$D_{(p,q)}$$
+
+# Mūsų atveju kraštinės, jungančios du viršūnes svorys yra lygus.
+# 
+# p - pagrindinė studijų programa
+# 
+# q - gretutinė studijų programa
+# 
+# n - bet kokia gretutinė programa
+# 
+# D - kraštinės svoris
+# 
+# $H_x$ - visi galėję rinktis studijų programą x.
+# 
+# $S_{x,m,k}$ - studentų, įstojusių į studijų programą x, m metais ir gretutines pasirinkusių k kurse, skaičius.
+# 
+# $m_i$, - metai, kuriuose pasirinktos gretutinės studijos.
+# 
+# $$H_x = S_{x, 2014, 4} + S_{x, 2014, 3} + S_{x, 2014, 2} + S_{x, 2014, 1} + S_{x, 2013, 3} + S_{x, 2013, 2} + S_{x, 2013, 1} + S_{x, 2012, 2} + S_{x, 2012, 2}  + S_{x, 2011, 1}$$
+# 
+# $$H_{x} = \sum {S_{x, x, m-2010}}$$
+# 
+# $$H_{2014} = \sum {S_{2014, 2014, (m-2010)}}$$
+# 
+# $$D_{(p,q)}= \frac{\sum_{(p,q)}} {\sum_{(p,n)}} \cdot \frac {1}{H_p}$$
+
+# Kaip atrasti dominuojantį svorį?
+# $D_{(p,q)}$ yra dominuojantis, jeigu $\frac{D_{(p,q)}} {D_{(q,p)}} > 0$ 
+
+# Svorių suvienodinimas, jei $D_{(p,q)} > 0$ ir $D_{(q,p)} > 0$ ir $D_{(p,q)}  \neq D_{(q,p)}$.
+
+# 
+# *Apie trijų narių ryšius. Tarkime, jog turime $D_{(p,q)}$, $D_{(p,r)}$ ir $D_{(p,q)}$                                                            
+# jei $D_{(p,q)} > D_{(p,r)}$ tai koks $D_{(p,r)}$? 
+# $$(x,y)$$
+
+# $(x)^{(-1)}$
+
+# $m_i$, 
+# $m_3$ 
+# 
+
+## 1 The data
+
+# In[4]:
+
+import os
+import glob
+import re
+import codecs
+import pickle
+
+os.listdir('Data/')
+glob.glob(r'Data/*.dot')
+
+path = 'Data/'
+names = ['13246', '13902', '155']
+names1 = ['194PIRMADALIS',"194ANTRADALIS",'415','839','228','864','415a','838','12197','199','12770']
+ext = '.dot'
+
+edgelist = []
+for x in names:
+    url = ''.join([path,x,ext])
+
+    f = codecs.open(url, 'r', encoding='UTF-8')
+    out = f.readlines()
+
+    mylist = []
+    for line in out:
+        regex = '".*?"'
+        stuff = re.findall(regex, line)          
+        mylist.append(stuff)
+    mylist = [x for x in mylist if x]
+    edgelist.extend(mylist)
+    
+for x in names1:
+    url = ''.join([path,x,ext])
+
+    f = codecs.open(url, 'r', encoding='UTF-8')
+    out = f.readlines()
+
+    mylist = []
+    for line in out:
+        regex = '".*?"'
+        stuff = re.findall(regex, line)
+        if stuff:
+            stuff[2], stuff[3], stuff[4] = stuff[4], stuff[2], stuff[3]
+        mylist.append(stuff)
+    mylist = [x for x in mylist if x]
+    edgelist.extend(mylist)
+    
+len(edgelist)
+
+
+# In[5]:
+
+# Clearing the data
+# Remove quotes
+for i in edgelist:
+    i[0] = i[0].replace('"', '')
+    i[1] = i[1].replace('"', '')
+    i[2] = i[2].replace('"', '')
+    i[3] = i[3].replace('"', '')
+    i[4] = i[4].replace('"', '')
+    i[5] = i[5].replace('"', '')
+    i[6] = i[6].replace('"', '')
+#    i[7] = i[7].replace('"', '')
+
+for i in edgelist:
+    i[2] = int(i[2])
+
+
+# In[6]:
+
+# Importing data 2
+import xlrd
+
+edgelist1 = []
+print ( "\nAdding extra entries")
+url = r'Data/edgelist1.xls'
+workbook = xlrd.open_workbook(url)
+worksheet = workbook.sheet_by_name('nolt')
+#worksheet = workbook.sheet_by_name('lt')
+num_rows = worksheet.nrows - 1
+num_cells = worksheet.ncols - 1
+curr_row = -1
+curr_cell = -1
+TEMPLIST = []
+while curr_row < num_rows:
+    curr_row += 1
+    row = worksheet.row(curr_row)
+#    print ( 'Row:', curr_row
+    curr_cell = -1
+    source = ''        
+    targett = ''
+    yearofstudy = ''
+    vardas = ''
+    faculty = ''
+    gretstart = ''
+    gretend = ''
+    dokumentas = ''
+    while curr_cell < num_cells:
+        curr_cell += 1
+        # Cell Types: 0=Empty, 1=Text, 2=Number, 3=Date, 4=Boolean, 5=Error, 
+        # 6=Blank
+        cell_type = worksheet.cell_type(curr_row, curr_cell)
+        cell_value = worksheet.cell_value(curr_row, curr_cell)
+#        print ( curr_cell
+#        print ( '	', cell_type, ':', cell_value
+        if curr_cell == 0:
+            source = cell_value.encode('utf-8')
+        if curr_cell == 1:
+            targett = cell_value.encode('utf-8')
+        if curr_cell == 2:
+            yearofstudy = int(cell_value)
+        if curr_cell == 3:
+            vardas = cell_value.encode('utf-8')
+        if curr_cell == 4:
+            faculty = cell_value.encode('utf-8')
+        if curr_cell == 5:
+            gretstart = unicode(cell_value)
+        if curr_cell == 6:
+            gretend = cell_value.encode('utf-8')
+        if curr_cell == 7:
+            dokumentas = cell_value
+    TEMPLIST = [source, targett, 
+                yearofstudy, vardas, faculty, 
+                gretstart, gretend, 
+                dokumentas]
+    edgelist1.append(TEMPLIST)
+#len(edgelist1)
+len(edgelist + edgelist1)
+
+edgelist = edgelist + edgelist1
+
+
+# In[7]:
+
+# Removing LT letter
+def remove_lt_letter(edgelist):
+    for edge in edgelist:
+        for item in edge[0:1]:
+            try:
+                for String in item:
+                    try:
+                        String = String.replace(String, liet_to_angl[String])
+                    except:
+                        pass
+            except:
+                pass
+    return edgelist
+
+remove_lt_letter(edgelist)
+
+# Change blank to underscore
+for i in edgelist:
+    if ' ' in i[0]:
+        i[0] = i[0].replace(' ', '_')
+    if ' ' in i[1]:
+        i[1] = i[1].replace(' ', '_')
+
+# Open faculty name dictionary.
+import json
+
+json_data=open(r'json/get_faculty_name.json')
+get_faculty_name = json.load(json_data)
+json_data.close()
+
+#with open('get_faculty_name.json', 'w') as outfile:
+#    json.dump(get_faculty_name, outfile)
+
+# Getting faculty names
+# get faculty names for pagr
+for k in edgelist:
+    if k[4]=='':
+        try:
+            rez = get_faculty_name[k[0]]
+        except:
+            rez = get_faculty_name[k[0].encode('utf-8')]
+            
+        if rez == None:
+            print ( 'Match for ', k[0].encode('utf-8'), 'match for was not found')
+        if rez != None:
+            k[4] = get_faculty_name[k[0]]
+
+# get faculty names for gret.
+for row in edgelist:
+    try:
+        rez = get_faculty_name[row[1]]
+        try:
+            if rez == None:
+                row.insert(5, '')
+    #           print ( row[1]
+        except:
+            pass
+        try:
+            if rez != None:
+                row.insert(5, rez)
+        except:
+            pass
+    except:
+        pass
+    
+# Changing some entries from str to int...
+for x in edgelist:
+    if '-02-' in x[6]:
+        x.append(int(x[2]) * 2)
+    else:
+        x.append(int(x[2]) * 2 - 1)
+
+
+### Nodelist
+
+# In[8]:
+
+nodelist = []
+#URL = "g:\Desktop\r\PID-29_Gretutiniu studiju reiskinys\VDU is ART"
+#urlendings = ['nodelist.xlsx','Studiju_programu_duomenu_bazes_pagrindai']
+#URL = ''.join([URL,urlendings[0]])
+URL = 'Data/nodelist.xlsx'
+
+print("Adding extra entries")
+workbook = xlrd.open_workbook(r'g:\Desktop\r\PID-29_Gretutiniu studiju reiskinys\VDU is ART\Lenteles20140412.xlsx')
+#worksheet = workbook.sheet_by_name('VDU_informacija') #BAD STUFF WITH LITHUANIAN LETTERS
+worksheet = workbook.sheet_by_name('VDU_informacija_nolt')
+num_rows = worksheet.nrows - 1
+num_cells = worksheet.ncols - 1
+curr_row = 0
+curr_cell = -1
+TEMPLIST = []
+while curr_row < num_rows:
+    curr_row += 1
+    row = worksheet.row(curr_row)
+#    print ( 'Row:', curr_row)
+    curr_cell = -1
+    pavadinimas = u''        
+    PSP = False
+    GSP = False
+    m09 = u''
+    m10 = u''
+    m11 = u''
+    m13 = u''
+    m14 = u''
+    PSP_apraso_nuoroda = ''
+    PSP_turinio_nuoroda = ''
+    PSP_organizuoja = ''
+    fakultetas = ''
+    GSP_apraso_nuoroda = ''
+    while curr_cell < num_cells:
+        curr_cell += 1
+        # Cell Types: 0=Empty, 1=Text, 2=Number, 3=Date, 4=Boolean, 
+        #5=Error, 6=Blank
+        cell_type = worksheet.cell_type(curr_row, curr_cell)
+        cell_value = worksheet.cell_value(curr_row, curr_cell)
+#        print ( curr_cell
+#        print ( '	', cell_type, ':', cell_value
+        if curr_cell == 0:
+            pavadinimas = cell_value.encode('utf8')
+        if curr_cell == 1:
+            PSP = bool(cell_value)
+        if curr_cell == 2:
+            GSP = bool(cell_value)
+        if curr_cell == 3:
+            m09 = cell_value
+        if curr_cell == 4:
+            m10 = cell_value
+        if curr_cell == 5:
+            m11 = cell_value
+        if curr_cell == 6:
+            m12 = cell_value
+        if curr_cell == 7:
+            m13 = cell_value
+        if curr_cell == 8:
+            PSP_apraso_nuoroda = cell_value
+        if curr_cell == 9:
+            PSP_turinio_nuoroda = cell_value
+        if curr_cell == 10:
+            PSP_organizuoja = cell_value
+        if curr_cell == 11:
+            fakultetas = cell_value
+        if curr_cell == 13:
+            GSP_apraso_nuoroda = cell_value
+    TEMPLIST = [pavadinimas, PSP, GSP, m09, m10, m11, m12, m13, 
+                PSP_apraso_nuoroda,PSP_turinio_nuoroda, 
+                PSP_organizuoja, fakultetas.lower(), GSP_apraso_nuoroda]
+    nodelist.append(TEMPLIST)
+    
+x = ([len(edgelist), len(edgelist[0])],
+     [len(nodelist), len(nodelist[0])])
+
+import time
+timestr = time.strftime("%Y-%m-%d_%H-%M")
+timestrless = time.strftime("%Y-%m-%d")
+
+import pickle
+pickle.dump(edgelist, open("Data/edgelist_{}.p".format(timestrless), "wb" ))
+pickle.dump(nodelist, open("Data/nodelist_{}.p".format(timestrless), "wb" ))
+x
+
+
+
+## 2 DATAFRAMES
+
+### 2.1 EDGE DATAFRAME 
+
+# Kuriame gretutinių studijų pasirinkimo dataframe. Šie duomenys gauti iš VDU. Šis dataframe yra pats svarbiausias mūsų tyrimui. Sukūrę jį mes jį pildysime naudodami duomenis iš kitų šaltinių. Taip pat, jį naudosime konstruodami grafą.
+
+# In[48]:
+
+import pandas as pd
+
+pd.options.display.mpl_style = 'default'
+pd.set_option('display.max_columns', 10)
+pd.set_option('display.max_rows', 7)
+pd.set_option('display.width', 10)
+
+edgeheaders = ['pagr','gret',
+               'studmet','vardas',
+               'pagrfak', 'gretfak', 
+               'gretpradz', 'gretpab', 
+               'saltinionr','studsem']
+               
+def start_dfe():
+    dfe = pd.DataFrame(edgelist, columns=edgeheaders)
+
+
+    #dfe = dfe[pd.notnull(dfe['pagr'])]
+    dfe['studmet'].apply(int) # or dfe.convert_objects(convert_numeric=True).dtypes
+    dfe['gretpradz'] = dfe['gretpradz'].astype('datetime64')
+    dfe['metulaikas'] = dfe['gretpradz'].map(lambda x: x.month)
+    dfe['metulaikas'] = dfe['metulaikas'].apply(lambda x: 1 if x == 2 else 2)
+
+    dfe['studsem'].apply(int)
+
+    # Žodynėlis
+    def liet_to_angl(stringas):
+        zodynelis = {
+        u'ą': 'a',
+        u'č': 'c',
+        u'ę': 'e',
+        u'ė': 'e',
+        u'į': 'i',
+        u'š': 's',
+        u'ų': 'u',
+        u'ū': 'u',
+        u'ž': 'z',
+
+        "ą": "a",
+        "č": "c",
+        "ę": "e",
+        "ė": "e",
+        "į": "i",
+        "š": "s",
+        "ų": "u",
+        "ū": "u",
+        "ž": "z"
+        }
+        for raide in stringas:
+            try:
+                stringas = stringas.replace(raide, zodynelis[raide])
+            except:
+                pass
+        return stringas
+
+    mydict = {}
+    for x in dfe.pagr.unique():
+        mydict[x] = liet_to_angl(x)
+    dfe = dfe.replace(mydict)
+    return dfe
+dfe
+
+
+### 2.2 NODE DATAFRAME
+
+# In[49]:
+
+nodeheaders = ['pavadinimas', 
+               'PSP', 'GSP', 
+               'm09', 'm10', 'm11', 'm12', 'm13', 
+               'PSP_apraso_nuoroda','PSP_turinio_nuoroda', 'PSP_organizuoja','fakultetas', 'GSP_apraso_nuoroda']
+
+dfn = pd.DataFrame(nodelist, columns=nodeheaders)
+
+dfn
+
+
+# Paruoškime mums vėliau reikalingus sąrašus, spalvų žodynus ir išsaugokime datafraemus.
+
+# In[50]:
+
+# Create lists that contain a) all possible faculties and b) all possible programs.
+facultylist = set(dfe.pagrfak.unique().tolist() + dfe.gretfak.unique().tolist())
+proglist = set(dfe.pagr.unique().tolist() + dfe.gret.unique().tolist())
+
+
+# Create color dictionaries for programs and faculties.
+get_ipython().magic(u'matplotlib inline')
+import matplotlib.pyplot as plt 
+fak_colors = {'evf':'#659768', 'gmf':'#b2ce69', 'hmf':'#e6c70b', 'if':'#8cbac2', 'ktf':'#904e98',
+              'mf':'#ce8d37', 'pmdf':'#58636c', 'smf':'#4667a9','tf':'#2a2f58', 'ma':'#00ceb9'}
+fak_colors1 = {'evf':'r', 'gmf':'h', 'hmf':'b', 'if':'c', 'ktf':'k', 
+               'mf':'r', 'pmdf':'g', 'smf':'b', 'tf':'c', 'ma':'y'}
+preCOLORS = [get_faculty_name[x] for x in proglist]
+COLORS = [fak_colors[x] for x in facultylist]
+def gauk_programos_fakulteto_spalva(prog):
+    temp = get_faculty_name[prog]
+    ret = fak_colors[temp]   
+    return ret
+programos_fakulteto_spalva = {}
+for x in proglist:
+    programos_fakulteto_spalva[x] = gauk_programos_fakulteto_spalva(x)
+#[programos_fakulteto_spalva[x] for x in proglist]
+
+
+# Save dataframes
+import time
+timestr = time.strftime("%Y-%m-%d_%H-%M")
+timestrless = time.strftime("%Y-%m-%d")
+
+dfe.to_pickle('data/dfe{}'.format(timestrless))  # where to save it, usually as a .pkl
+dfn.to_pickle('data/dfn{}'.format(timestrless))  # where to save it, usually as a .pkl
+
+dfTEST = pd.read_pickle('data/dfe{}'.format(timestrless))
+
+
+### 2.3 Enriching DFE with DFN
+
+# Kaip jau minėjome, mūsų pagrindinė informacija išsaugota dviejuose DF. Viename DF išsaugota gretutinių studijų pasirinkimo informacija, o kitame - studentų stojimo duomenys.
+# 1. Šioje dalyje, prie DFE pridėsime, kiek studentų rinkosi pagrindinę studijų programą.
+# 2. Palyginsime su skaičiumi studentų, kurie rinkosi gretutines studijas.
+# 
+
+# In[51]:
+
+# We need to add some more entries.
+def apg(studprog):
+    mydict = {}
+    studijavo = dfn[dfn[u'pavadinimas'] == studprog]
+    studijavo = studijavo[[u'm10', u'm11', u'm12', u'm13']].T.sum()
+
+    rinkosi_gret = dfe[dfe[u'pagr'] == studprog]
+    rinkosi_gret = rinkosi_gret.groupby([u'pagr']).size()
+
+    buvopasirinkta = dfe[dfe[u'gret'] == studprog]
+    buvopasirinkta = buvopasirinkta.groupby([u'gret']).size()
+
+    res1 = int(studijavo.iloc[0])
+    res2 = int(rinkosi_gret.iloc[0])
+    res3 = int(buvopasirinkta.iloc[0])
+    res = float(res2) / float(res1)
+    mydict = {u'santykis': res, u'buvopasirinkta': res3}
+
+    ret = mydict
+    return ret
+
+
+# This one takes a while to load (15~ seconds). Why is it so slow?
+l1 = []
+l2 = []
+l3 = []
+l4 = []
+for x in list(pd.Series(dfe.pagr)):
+    try:
+        rez1 = apg(x)[u'santykis']
+        rez2 = apg(x)[u'buvopasirinkta']
+        l1.append(rez1)
+        l2.append(rez2)
+    except:
+        l1.append(None)
+        l2.append(None)
+
+for x in list(pd.Series(dfe.gret)):
+    try:
+        rez3 = apg(x)[u'santykis']
+        rez4 = apg(x)[u'buvopasirinkta']
+        l3.append(rez3)
+        l4.append(rez4)
+    except:
+        l3.append(None)
+        l4.append(None)
+        
+dfe[u'pagrpop'] = l1
+dfe[u'pagrall'] = l2
+dfe[u'gretpop'] = l3
+dfe[u'gretall'] = l4
+
+
+# Let's have a look!
+import numpy as np
+dfe_temp = dfe.loc[:,['pagr','gret','pagrpop','pagrall']]
+dfe_temp = dfe_temp.drop_duplicates()
+dfe_temp = dfe_temp.sort('pagrpop')
+dfe_temp = dfe_temp[np.isfinite(dfe_temp['pagrpop'])]
+
+temprez = dfe_temp.sort('pagrpop').pagrpop.drop_duplicates('pagr')
+temprez
+
+
+
+####### But what about the real weights?
+
+# Kaip apskaiciuojamas grafo krastiniu svoris?
+# 2014 pavasario semestras. 
+# 
+# Visi, gretutines pasirinkte 2013-2014 studiju metais.
+# Gretuines  2013-2014 m. pasirinkę tuometiniai 1-3 kurso studentai.
+# Gretuines  2012-2013 m. pasirinkę tuometiniai 1-2 kurso studentai.
+# Gretuines  2011-2012 m. pasirinkę tuometiniai 1 kurso studentai.
+# 
+# Apibendrinant: $H_{metai} = ({(metai)}_{1-4}) + ({(metai-1)}_{1-3}) + ({(metai-2)}_{1-2}) + ({(metai-3)}_{1}$)
+
+# In[52]:
+
+# This function gets possible students of this year.
+def get_number_of_current_gret_of_prog(PROG):  # Returns
+    retlist = []
+    for x in range(1, 9):
+        dft = dfe[dfe['studsem'] == x]
+        dft = dft[dft['studmet'] >= x]
+        dft = dft[dft['pagr'] == PROG]
+        ret = len(dft)
+        retlist.append(ret)
+    return sum(retlist)
+
+def gauk_skaiciu_pagal_metus_pagr_prog(PROG, df): # Paduodame programos pavadinimą, gauname, kiek i programą istojo per paskutinius keturiu metus.
+    result = 0
+    yeardict = {2010:'m10', 
+                2011:'m11',
+                2012:'m12', 
+                2013:'m13'}
+    stoje_pasirinkegret = df[df[u'pavadinimas'].isin([PROG])]
+    res = stoje_pasirinkegret[[yeardict[2010],
+                               yeardict[2011],
+                               yeardict[2012],
+                               yeardict[2013]]]
+    
+    try:
+        result = int(res.values.sum(axis=1))
+        return result
+    except:
+        return result
+
+# Dictionary that gets number of current students and year
+mydict = {}
+for x in proglist:
+    ret1 = gauk_skaiciu_pagal_metus_pagr_prog(x, dfn)
+    ret2 = get_number_of_current_gret_of_prog(x)
+    ret2 = float(ret2)
+    try:
+        ret1 = float(ret1)
+    except:
+        pass
+    mydict[x] = [ret2, ret1]
+
+# In this part we get something, by diving to values we got in previous cell
+tikrasis_gret_pop = [[x, mydict[x][0] / mydict[x][1]]
+                     for x in proglist 
+                     if (type(mydict[x][1]) == float) 
+                     and (mydict[x][1] != 0)]
+
+dft = pd.DataFrame([x[1] for x in tikrasis_gret_pop],
+                   [x[0] for x in tikrasis_gret_pop],
+                   columns=['santykis'])
+srtd = dft.sort('santykis')
+
+srtd['visostojo'] = [mydict[x][1] for x in srtd.index]
+srtd.add = [x in range(20)]
+TTL = 'Koks procentas studentu renkasi gretutines(is siuo metu studijuojanciu)'
+srtd['visostojo'] = list([mydict[x][1] for x in srtd.index])
+
+# FOR GRET GRET GRET
+def get_number_of_current_students_getting_the_GRET_of_the_prog(PROG):
+    retlist = []
+    for x in range(1, 9):
+        dft = dfe[dfe[u'studsem'] == x]
+        dft = dft[dft[u'gretpradz'] >= x]
+        dft = dft[dft[u'gret'] == PROG]
+        ret = len(dft)
+        retlist.append(ret)
+    return sum(retlist)
+
+# Kiek studentų šiuo metu turi šias gretutines.
+of_minor = [get_number_of_current_students_getting_the_GRET_of_the_prog(x)
+            for x in srtd.index]
+
+
+# In[53]:
+
+# Add this instead of pagrpop and gretpop
+plt.plot(sorted([x[1] for x in tikrasis_gret_pop]))
+
+
+# In[54]:
+
+fig = plt.figure(num=None,
+                 figsize=(5, 5),
+                 dpi=80,
+                 facecolor='w',
+                 edgecolor='k')
+
+labels = srtd.index
+ax = fig.add_subplot(111)
+ax.set_title(u'Išeinantys prieš ateinančius')
+ax.set_xlabel(u'Pasirinke šią gretutinių studijų programą')
+ax.set_ylabel(u'Šios studijų programos skaičius')
+plt.scatter(of_minor, 
+            srtd.santykis, 
+            s=(srtd.visostojo * 3), 
+            c=[programos_fakulteto_spalva[x] for x in srtd.index],
+            alpha=0.7)
+
+for label, x, y in zip(labels, of_minor, srtd.santykis):
+    plt.annotate(
+        label, 
+        xy = (x, y), xytext = (-10, 10),
+        textcoords = 'offset points', ha = 'right', va = 'bottom',
+        bbox = dict(boxstyle = 'round,pad=0.3', fc = 'grey', alpha = 0.1),
+        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+
+plt.show()
+
+
+# In[55]:
+
+[x.decode('utf-8') for x in srtd.index]
+
+
+# In[56]:
+
+import mpld3
+fig = plt.figure(num=None,
+                 figsize=(5, 5),
+                 dpi=80,
+                 facecolor='w',
+                 edgecolor='k')
+
+
+scatter = plt.scatter(of_minor, 
+                      srtd.santykis, 
+                      s=(srtd.visostojo * 3), 
+                      c=[programos_fakulteto_spalva[x] for x in srtd.index],
+                      alpha=0.7)
+
+ax.grid(color='white', linestyle='solid')
+
+#for label, x, y in zip(labels, of_minor, srtd.santykis):
+#    plt.annotate(
+#        label, 
+#        xy = (x, y), xytext = (-10, 10),
+#        textcoords = 'offset points', ha = 'right', va = 'bottom',
+#        bbox = dict(boxstyle = 'round,pad=0.3', fc = 'grey', alpha = 0.1),
+#        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+ax.set_title(u'Išeinantys prieš ateinančius')
+ax.set_xlabel(u'Pasirinke šią gretutinių studijų programą')
+ax.set_ylabel(u'Šios studijų programos skaičius')
+
+labels = [x.decode('utf-8') for x in srtd.index]
+tooltip = mpld3.plugins.PointLabelTooltip(scatter,labels=labels)  # labels=labels
+mpld3.plugins.connect(fig, tooltip)
+
+mpld3.display()
+
+
+# In[57]:
+
+#I have a graph. And I would like to draw a scatter plot of node attributes with edges on top of it. I would like to use mpld3 library. However any answer using pure plt are also very welcome.
+import matplotlib.pyplot as plt
+import mpld3
+fig = plt.figure(num=None,
+                     figsize=(5, 5),
+                     dpi=80,
+                     facecolor='w',
+                     edgecolor='k')
+
+nodes=[0,1,2,3,4,5]
+edges=[(0,5,{'weight':3}),
+        (0,1,{'weight':3}),
+           (0,2,{'weight':7}),
+           (5,4,{'weight':6}),
+           (3,2,{'weight':3}),
+           (4,1,{'weight':2})]
+
+    # First column represents value of first node. For example: node 0 has x vale of 0 and y value of 5.
+scatter = plt.scatter([0,1,2,3,4,], 
+                          [5,2,3,4,5])
+
+mpld3.display()
+#plt.show()
+
+
+# In[57]:
+
+
+
+
+# What did we learn from this part?
+
+## 3. Faculty level analysis
+
+# <p>
+# <l>Now, when we have our dataframes ready, we can dive deeper into the analysis. First, let's see what we can do.</l>
+# <l>First, lets begin by analysing faculty level. But before we start it we have to recognise some things. First, it is not really abotu faculty level, it is about the reduction to faculty level. The data will include all individual cases. </l>
+# <l>At this moment, our focus is on faculty level, we will dive deeper, of course, but lets wait for a bit.</l>
+# <l>So, lets look how we filter </l>
+# </p>
+
+# In[58]:
+
+# This shows ho we filter to entries of one faculty. In this case we look at the source of academic minor
+dfe[dfe['pagrfak'].isin(['hmf'])]
+
+
+# <p>So, we have 254 cases of people from HMF choosing academic minor.</p>
+
+# In[59]:
+
+# This is another look, we see all cases when someone chooses an entry in other faculty.
+dfe[dfe['gretfak'].isin(['hmf'])]
+
+
+# We have 91 case of gret.
+# So, we want to run through different faculties and compare them. To save some time we will do it the following way.
+
+# In[60]:
+
+# Gretutines pasirinkusių fakulto studentų skaičius.
+rez1 = [len(dfe[dfe['pagrfak'].isin([x])]) for x in facultylist]
+# Gretutines fakulteto išorėje pasirinkusių studentų skaičius.
+rez2 = [len(dfe[dfe['pagrfak'].isin([x]) & ~dfe['gretfak'].isin([x])]) for x in facultylist]
+# Gretutines tame pačiame fakultete pasirinkusių studentų skaičius.
+rez3 = [rez1[x] - rez2[x] for x in range(len(rez1))]
+# rez3_1 = [len(dfe[dfe['pagrfak'].isin([x]) & dfe['gretfak'].isin([x])]) for x in facultylist]
+# rez3 == rez3_1
+
+# Iš kitos pusės 
+# But what about looking from the other side?
+rez4 = [len(dfe[dfe['gretfak'].isin([x])]) for x in facultylist] 
+rez5 = [len(dfe[dfe['gretfak'].isin([x]) & ~dfe['pagrfak'].isin([x])]) for x in facultylist]
+
+rex = [rez1, rez2, rez3, rez4, rez5]
+headers = ['is_fak','is_fak_out','to_same_fak','i_fak','i_fak_is_isores']
+dft = pd.DataFrame(rex, index=headers, columns=facultylist)
+
+
+####### Preparation for plotting.
+
+# We will plot quite a lot. To do that effectively we will use a system of dictionaries. That will help us to plot everything in a right way.
+
+# In[60]:
+
+
+
+
+# In[61]:
+
+dft1 = pd.DataFrame([rez2,rez3], index=['is_fak_out','to_same_fak'], columns=facultylist)
+dft2 = dft1.T
+dft2['procentas'] = (dft2.is_fak_out / dft2.to_same_fak) * 10
+dft2 = dft2.drop('procentas', 1)
+dft2['programu_fakultete'] = dfn.groupby(['fakultetas']).size()
+dft2['programu_NEfakultete'] = len(proglist) - dfn.groupby(['fakultetas']).size()
+dft2['TSF_atsizvelgus_i_PF'] = (dft2.is_fak_out / dft2.programu_NEfakultete)
+dft2['IFO_atsizvelgus_i_PF'] = (dft2.to_same_fak / (dft2.programu_fakultete - 1)) # nes negali i ta pacia
+dft2['TSF_IFO_procentas'] = dft2.TSF_atsizvelgus_i_PF / dft2.IFO_atsizvelgus_i_PF * 50
+
+
+# In[62]:
+
+srtd = dft2.sort('TSF_IFO_procentas',ascending=True)
+srtd.head()
+
+
+# In[63]:
+
+# Ar palikti fakultetus, kurie turi labai mažai studentų? Manau reikia atsisakyti MA ir TF.
+# Kaip pridėti procentinę liniją?
+
+# Šiuos duomenis galime patikslinti, atsižvelgiant į pasirinkimo galimybę. 
+# Kiek Buvo galima pasirinkti programų fakulteto viduje? 
+# Teisės fakulteto studentai turėjo 0 galimybių pasirinkti fakulteto viduje.
+# Didesnį pasirinkimą turėjo HMF, SMF ir kitų programų studentai.
+# HMF, nepaisydami didelio pasirinkimo, juda į 
+# SMF, linkę likti tame pačiame fakultete.
+# GMF, linkę likti ten pat.
+# PMDF, didelis judėjimas į išorę, vidutinis pasirinkimas.
+
+# Kas tiesa, tas nemelas. Sunku įvertinti programų pasirinkimą, klausimai: 
+# "apie kiek programų studentai svarstė" ir 
+#  "kiek tuo metu programų buvo"?
+srtd.sort('TSF_IFO_procentas',ascending=True).plot(kind='barh', alpha=1)
+
+
+# Būtina atsžvelgti, jog ne visi gali judėti į kitą fakultetą. Geriausias to pavyzdys - teisės fakultetas. Jame - tik viena studijų programa. Toliau esančiame grafe tai ir darome.
+
+# In[64]:
+
+fig = plt.figure(num=None,
+                 figsize=(5, 5),
+                 dpi=80,
+                 facecolor='w',
+                 edgecolor='k')
+
+labels = dft2.index.unique()
+plt.subplots_adjust(bottom = 0.1)
+
+ax = fig.add_subplot(111)
+ax.set_title(u'Fakulteto ribose ir už tarpfakultetiniai')
+ax.set_xlabel(u'Į kitus fakultetus')
+ax.set_ylabel(u'Lieka fakultete')
+
+plt.scatter(dft2.TSF_atsizvelgus_i_PF, 
+            dft2.IFO_atsizvelgus_i_PF, 
+            alpha=0.7, 
+            color=COLORS, 
+            s=dft2.programu_fakultete * 100)
+
+for label, x, y in zip(labels, dft2.TSF_atsizvelgus_i_PF, dft2.IFO_atsizvelgus_i_PF):
+    plt.annotate(
+        label, 
+        xy = (x, y), xytext = (-10, 10),
+        textcoords = 'offset points', ha = 'right', va = 'bottom',
+        bbox = dict(boxstyle = 'round,pad=0.3', fc = 'grey', alpha = 0.1),
+        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+##########################
+# padaryti ta pati, tik atskiroms programoms.
+##########################
+plt.show()
+
+
+# In[65]:
+
+from mpl_toolkits.mplot3d import axes3d
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.set_title(u'Fakulteto ribose ir už tarpfakultetiniai')
+ax.set_xlabel(u'Į kitus fakultetus')
+ax.set_ylabel(u'Lieka fakultete')
+ax.set_zlabel(u'Santykis')
+
+cmhot = plt.cm.get_cmap("hot")
+xs = dft2.TSF_atsizvelgus_i_PF
+ys = dft2.IFO_atsizvelgus_i_PF
+zs = dft2.TSF_IFO_procentas
+l = ax.scatter(xs, 
+               ys, 
+               zs, 
+               #c=zs, for mappable
+               c=COLORS,
+               s=dft2.programu_fakultete * 100,
+               alpha=1 # Should be helpful to tell distance
+               #cmap=cmhot # Goes together with c=zs
+               )
+
+ax.azim = 160
+ax.elev = 5
+#for ii in xrange(3,360,3):
+#  ax.view_init(elev=10., azim=ii)
+
+#fig.colorbar(l)
+plt.show()
+
+
+## Pairs of faculties
+
+### HMF and SMF
+
+# In[66]:
+
+import matplotlib.pyplot as plt
+
+plt.figure()
+# Example with HMF and SMF
+fltrd1 = dfe[dfe['pagrfak'].isin(['hmf'])]
+fltrd2 = fltrd1[fltrd1['gretfak'].isin(['smf'])]
+grpd = fltrd2.groupby(['gret']).size().order('gret')
+#grpd.plot(title='hmf studentai renkasi smf gretutines', kind='barh')
+#grpd
+#plt.show()
+
+
+# In[67]:
+
+fltrd1 = dfe[dfe['pagrfak'].isin(['smf'])]
+fltrd2 = fltrd1[fltrd1['gretfak'].isin(['hmf'])]
+grpd = fltrd2.groupby(['gret']).size().order('gret')
+#grpd.plot(title='smf studentai renkasi hmf gretutines', kind='barh')
+#plt.show()
+
+
+## 4 One faculty analysis
+
+#### Faculty of social sciences
+
+# In[68]:
+
+# Lets analyse SMF
+plt.figure()
+smf = dfe[dfe['pagrfak'].isin(['smf'])]
+grpd = smf.groupby('gretfak').size().order(ascending=True)
+
+grpd.plot(kind='barh',title=u'Į kokius fakultetus stoja SMF studentai?')
+
+
+# In[69]:
+
+plt.figure()
+grpd1 = smf.groupby('studsem').size() #Studsem, not very interesting. But I should make them all.
+grpd1.plot(kind='barh',title=u'Kokiame semestre stoja smf studentai?')
+
+
+### SMF į HMF
+
+# In[70]:
+
+# Kokių HMF programų studentai labiausiai linkę rinktis SMF gretutines?
+dfh2s = dfe[dfe.pagrfak.isin(['hmf']) & dfe.gretfak.isin(['smf'])]
+
+TITLE = u'Kokių HMF programų studentai labiausiai linkę rinktis SMF gretutines?'
+dfh2s.groupby('pagr').size().order(ascending=True).plot(kind='barh', title=TITLE)
+
+
+# In[71]:
+
+# Kokias SMF gretutines labiausiai linke rinktis HMF studentai?
+dfh2s.groupby('gret').size().order(ascending=True).plot(kind='barh')
+
+
+# In[72]:
+
+# HMF ir SMF TWIN GRAPH
+grouped = dfe[dfe['pagrfak'].isin(['smf', 'hmf'])].groupby(['pagr', 'gret'])
+ordrd = grouped.size().order(ascending=True)
+
+plt.figure()
+ordrd.plot(kind='line', figsize=(5, 5), title='Stud prog tarp HMF ir SMF')
+#ordrd.plot(kind='barh', figsize=(5, 5), title='Stud prog tarp HMF ir SMF')
+plt.show()
+
+
+# In[73]:
+
+# Faculty Ego(INTERNAL)graph
+faculty_internal_ego_graph = [dfe[dfe.pagrfak.isin([x]) & dfe.gretfak.isin([x])] for x in facultylist]
+[len(x) for x in faculty_internal_ego_graph]
+
+
+# In[74]:
+
+[x.groupby(['studsem']).size() for x in faculty_internal_ego_graph][0]
+
+
+# In[75]:
+
+[x.groupby(['gretfak']).size() for x in faculty_internal_ego_graph]
+
+
+# We will color it, to make it easier to understand.
+# Also, do not forget that we have other options. Not only spearman is available to help us out!
+# 
+
+# Ok, let's make a Graph now!
+
+## 5 NetworkX
+
+# What can we do with NX?
+
+### 5.1 NetworkX allows us to get more data
+
+# NetworkX allows us to explore the data even more. Note, we already did somethings that are usually done with NetworkX, we did analyse the closest neighbors of faculties and study programs. However, now we are going to apply some data that can be accessed only via NetworkX (and some other graph analysis packages).
+
+# In[76]:
+
+get_ipython().magic(u'matplotlib inline')
+import networkx as nx
+import mpld3
+
+
+# In[77]:
+
+# Create the graph object.
+G = nx.MultiDiGraph()
+
+
+# Why MultiDiGraph? There are simplier options. We could have chosen DiGraph or MultiGraph or just simple Graph. Well, our graph need sto have all the possibilities
+
+# Let's get a graph directly from pandas framework.
+
+# In[78]:
+
+u = 'hjh'
+v = 'hh'
+d = {'weight':'1'}
+e = [(u,v,d),(u,v,d)]
+#e = 
+
+pd2nx = dfe.T.to_dict()
+pd2nx1 = [(pd2nx[x]['pagr'],
+           pd2nx[x]['gret'],
+           {'gretall': pd2nx[x]['gretall'],
+            'gretfak': pd2nx[x]['gretfak'],
+            'gretpab': pd2nx[x]['gretpab'],
+            'gretpop': pd2nx[x]['gretpop'],
+            'gretpradz': pd2nx[x]['gretpradz'],
+            'pagrall': pd2nx[x]['pagrall'],
+            'pagrfak': pd2nx[x]['pagrfak'],
+            'pagrpop': pd2nx[x]['pagrpop'],
+            'saltinionr': pd2nx[x]['saltinionr'],
+            'studmet': pd2nx[x]['studmet'],
+            'studsem': pd2nx[x]['studsem'],
+            'vardas': pd2nx[x]['vardas']}) 
+            for x in range(len(pd2nx))]
+
+# Add edges and their attributes (node are included).
+G.add_edges_from(pd2nx1)
+
+# Add node attribues.
+for x in G.nodes():
+    G.node[x]['fakultetas'] = get_faculty_name[x]
+    #add more?
+    
+#G.nodes(data=True)
+#G.edges(data=True)
+len(G.nodes()),len(G.edges())
+
+
+####### SUB GRAPHS
+
+# Lets start by crating an internal graph. The criteria is simple, all nodes of graph have to be in same faculty.
+
+# In[79]:
+
+# This is how subgraph is created. In this case let's create a subgraph for philosophy study program. 
+SG = G.subgraph([n for n, attrdict in G.node.items() if attrdict["fakultetas"] == "hmf"])
+SG = G.subgraph([n for n, attrdict in G.node.items() if attrdict["fakultetas"] == "smf"])
+SG = G.subgraph([n for n, attrdict in G.node.items() if attrdict["fakultetas"] == "pmdf"])
+
+SG.nodes()
+
+
+####### Egographs
+
+# Let's create many subgraphs.
+# 1) By using DFE
+# 2) By using EgoGraph and community functions of NETWORKX
+
+#### 5.1 Program graphs
+
+#### 5.1.1 Ego
+
+# In[80]:
+
+# This is FACULTY GRAPH. I SHOULD MOVE IT. But no, it focus on level of programs.
+faculty = u'hmf'
+GHMF=nx.Graph([(u,v,d) for u,v,d in G.edges(data=True) if d[u'pagrfak'] == faculty or d[u'gretfak'] == faculty])
+
+# Dictionary of faculty Egographs
+# Move to another place.
+mydict = {}
+for x in facultylist:
+    graph = nx.MultiDiGraph([(u,v,d) for u,v,d in G.edges(data=True) if d['pagrfak'] == x or d['gretfak'] == x])
+    mydict[x] = graph
+
+
+#### 5.1.2 Twin graphs
+
+# In[81]:
+
+#This place should contain pairs of programs.  What we can say about how philosophy interacts with law?
+x,y=u'hmf',u'pmdf'
+fakpair = {}
+fakpair['hmfsmf'] = nx.MultiDiGraph([(u,v,d) for u,v,d in G.edges(data=True) if d['pagrfak'] == x and d['gretfak'] == y])
+# Also, how many different interaction possibilities do we have? What are the trends of interaction?
+fakpair
+
+
+#### 5.1.3 Triplets
+
+# In[81]:
+
+
+
+
+##### SG = {} SG['hmf'] = G.subgraph([n for n, attrdict in G.node.items() if attrdict["fakultetas"] == "hmf"]) SG['hmf'].nodes(data=True)                     
+
+# In[82]:
+
+faculty = 'hmf'
+SG = mydict[faculty]
+for x in SG.nodes():
+    SG.node[x]['fakultetas'] = get_faculty_name[x]
+
+all_faculties_in_graph = [get_faculty_name[x] for x in SG.nodes()]
+set(all_faculties_in_graph)
+# for each faculty identify all involved NODES and EDGES
+
+
+# In[83]:
+
+# Create a faculty-list of node-program-list
+list_of_node_lists = []
+for FAK in set(all_faculties_in_graph):
+    node_list = []
+    node_list = [n for n, attrdict in SG.node.items() if attrdict["fakultetas"] == FAK]
+    list_of_node_lists.append(node_list)
+list_of_node_lists
+
+
+# In[84]:
+
+# Now, for every faculty we should generate a graph generator.
+
+
+# In[85]:
+
+#SSG = SG.subgraph([n for n, attrdict in G.node.items() if attrdict["fakultetas"] == "hmf"])
+#SSG.nodes(data=True)
+
+
+# In[91]:
+
+### Developing a colored version.
+#from mpld3 import enable_notebook
+#enable_notebook()
+
+def draw_graphs(faculty):
+    G = mydict[faculty]
+    for x in G.nodes():
+       G.node[x]['fakultetas'] = get_faculty_name[x]
+          
+    plt.figure(figsize=(10, 10))
+    plt.title('{}'.format(faculty))
+    
+    pos=nx.spring_layout(G, iterations=100)
+    
+    all_faculties_in_graph = [get_faculty_name[x] for x in G.nodes()]
+    rez = set(all_faculties_in_graph)
+   # weights = [n for n, attrdict in G.edge.items() if attrdict["fakultetas"] == "hmf"]
+    count = 0
+    for x in rez:
+        count += 1
+        nx.draw_networkx_nodes(G,
+                               pos,
+                               #nodelist=G.nodes()[5:-1],
+                               nodelist=[z for z in G.nodes() if get_faculty_name[z] == x],
+                               node_color=fak_colors[x],
+                               node_size=500,
+                               alpha=0.5)
+    
+    count = 0
+    for x in rez:
+        nx.draw_networkx_edges(G,
+                               pos,
+         #                      edgelist=G.edges(),
+                               edgelist = [(u,v,d) for u,v,d in G.edges(data=True) if get_faculty_name[u] == x],
+                               width=2,
+                               alpha=0.2,
+                               weight=1,
+                               edge_color=fak_colors[x])
+
+        #add nx.draw_networkx_edges... if u and v already in graph
+    nx.draw_networkx_labels(G, 
+                             pos, 
+                             labels=None, 
+                             font_size=10, 
+                             font_color='k', 
+                             font_family='sans-serif', 
+                             font_weight='normal', 
+                             alpha=0.6, 
+                             ax=None)
+    plt.show()
+[draw_graphs(x) for x in facultylist]
+
+
+# In[54]:
+
+# Wonderful, but lets do the same for 
+#EACH PROGRAM! PROGRAMS EGO NETWORK
+#INTERNAL FACULTY RELATIONS
+
+
+# In[55]:
+
+# Let's do internal faculty
+
+
+# In[56]:
+
+# Let's do favorite locations of each faculty. Which faculty do they like to go to
+
+
+# In[57]:
+
+# Let's do STUDSEM paterns
+
+
+# In[58]:
+
+# Let's do changes of faculty patterns. What amount of people go where, is it continuous or is it fluctuating?
+
+
+# In[59]:
+
+# Let's do some tweaks for pring layout.
+
+
+# In[60]:
+
+# Example of working with linspace.
+import numpy as np
+import string
+
+plt.figure(figsize=(5, 5))
+nx.draw(G,
+        node_color = np.linspace(0,1,len(G.nodes())),
+        edge_color = np.linspace(0,1,len(G.edges())),
+        width = 3.0,
+        labels = {n:l for n,l in zip(G.nodes(),string.ascii_uppercase)}
+        )
+plt.show()
+
+
+### 5.2 Faculty graphs
+
+# In[61]:
+
+[nx.density(mydict[x]) for x in facultylist] #add this somewhere
+
+
+# In[62]:
+
+# GD stands for Graph Dictionary
+
+
+#### 5.2.1 Ego
+
+#### 5.2.2 Twin(pair) 
+
+# In[63]:
+
+# Works only with two graphs
+GHSC = nx.compose(mydict['hmf'],mydict['smf'])
+len(GHSC.edges()), len(GHSC.nodes())
+
+
+# In[64]:
+
+dfe
+
+
+# We have many connections between programs. These connections are very itneresting. The most interesting thing to us is, whether we can interpret connections as one sided. We have a hypothesis, that each connection is onesided, to prove that, we have to find, how values of connections compare.
+# 
+# If we find that connections are indeed onesided, we will enable to reduce our graph to DiGraph, that will help us to process the graph even further.
+# 
+# We will not abandon the data, we will identify unlikely connections. That is to say, connections, that go against the stream.
+
+# In[65]:
+
+def gauk_tikruosius_svorius(x,y):
+    dft = dfe.loc[:,['pagr','pagrpop','pagrall']]
+
+    x_pagrpop = dft[dft.pagr == x].drop_duplicates()['pagrpop'].values
+    x_pagrall = dft[dft.pagr == x].drop_duplicates()['pagrall'].values
+
+    y_pagrpop = dft[dft.pagr == y].drop_duplicates()['pagrpop'].values
+    y_pagrall = dft[dft.pagr == y].drop_duplicates()['pagrall'].values
+
+    x_to_y = len(dfe[dfe['pagr'].isin([x]) & dfe['gret'].isin([y])])
+    y_to_x = len(dfe[dfe['pagr'].isin([y]) & dfe['gret'].isin([x])])
+    
+    rez = [x, y, 
+           float(x_pagrpop), float(x_pagrall),  # Something wroing with returning 0 length arrays and turning them to float
+           float(y_pagrpop), float(y_pagrall), 
+           x_to_y, y_to_x]
+    
+    value1 = 0
+    value2 = 0
+    
+    if float(rez[6]) != 0:
+        value1 = (float(rez[3]) / float(rez[6]))
+    if float(rez[7]) != 0:
+        value2 = (float(rez[5]) / float(rez[7]))
+                  
+    ret = [rez[0],
+           rez[1], 
+           value1 * rez[2],
+           value2 * rez[4]]
+    return ret
+x,y = 'istorija','teise'
+
+
+dft = dfe.loc[:,['pagr','pagrpop','pagrall']]
+dft
+
+
+# In[66]:
+
+rex = []
+for x in proglist:
+    for y in proglist:
+        rezz = []
+        try:
+            rezz = gauk_tikruosius_svorius(x,y)
+        except:
+            pass
+        rex.append(rezz)
+rex
+
+
+DTTTTTT = pd.DataFrame(rex,columns=['pav1','pav2','wght1','wght2'])
+DTTTTTT
+
+
+# In[67]:
+
+import pandas as pd
+rex = [x for x in rex if x]
+#[len(x) for x in rex] #Check
+
+names1 = [x[0] for x in rex] 
+names2 = [x[1] for x in rex]
+values = [x[2] for x in rex]
+
+DATAFRAME = pd.DataFrame()
+DATAFRAME = pd.DataFrame(rex,
+                         columns=['pagr','gret','weight','weight2'])
+DATAFRAME = DATAFRAME.dropna()
+DATAFRAME = DATAFRAME[DATAFRAME.weight != 0].sort('weight')
+DATAFRAME1 = DATAFRAME
+DATAFRAME = DATAFRAME.drop('weight2', 1)
+
+
+# In[68]:
+
+DATAFRAME1.weight
+
+
+# In[69]:
+
+fig = plt.figure(num=None,
+                 figsize=(15, 15),
+                 dpi=80,
+                 facecolor='w',
+                 edgecolor='k')
+
+labels = zip(DATAFRAME1.pagr,DATAFRAME1.gret)
+ax = fig.add_subplot(111)
+ax.set_title(u'Neblogas grafas')
+ax.set_xlabel(u'Kiek iseina')
+ax.set_ylabel(u'Koks antros programos skaicius')
+plt.scatter(DATAFRAME1.weight, 
+            DATAFRAME1.weight2, 
+            s=500, 
+            c=[programos_fakulteto_spalva[x] for x in DATAFRAME1.pagr],
+            alpha=0.7)
+
+for label, x, y in zip(labels, DATAFRAME1.weight, DATAFRAME1.weight2):
+    plt.annotate(
+        label, 
+        xy = (x, y), xytext = (-10, 10),
+        textcoords = 'offset points', ha = 'right', va = 'bottom',
+        bbox = dict(boxstyle = 'round,pad=0.3', fc = 'grey', alpha = 0.1),
+        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+
+plt.show
+
+
+# In[87]:
+
+pd2nx = DATAFRAME.T.to_dict()
+pd2nx2 = [(pd2nx[x]['pagr'], pd2nx[x]['gret'], {'gretall': pd2nx[x]['weight']}) for x in DATAFRAME.index]
+
+
+# In[ ]:
+
+pd2nx2
+
+
+# In[88]:
+
+from mpld3 import enable_notebook
+enable_notebook()
+
+G = nx.MultiDiGraph(pd2nx2)
+#SG = G.subgraph([n for n, attrdict in G.node.items() 
+#                 if (attrdict["fakultetas"] == "hmf"]) 
+#                 or (attrdict["fakultetas"] == "smf"]) 
+nx.draw(SG)
+
+
+# In[73]:
+
+#x_pagrpop = dft[dft.pagr == x].drop_duplicates()['pagrpop'].values
+#x_pagrall = dft[dft.pagr == x].drop_duplicates()['pagrall'].values
+
+
+# In[74]:
+
+# Faculty pairs
+# Better to do some of this with pandas.
+# creates a list of dictionaries, where dictionaries represent relations between two. PAIR
+mylist = []
+for x in proglist:
+    mydict = {}
+    mydict['x'] = x
+    
+  #  lala = dfe.iloc['pagrpop','pagrviso']
+    for y in proglist:
+        mydict['y'] = y
+        mydict['xy'] = [len(dfe[dfe['pagr'].isin([x]) & dfe['gret'].isin([y])])][0]
+        mydict['yx'] = [len(dfe[dfe['pagr'].isin([y]) & dfe['pagr'].isin([x])])][0]
+        mylist.append(mydict)
+#some1 = [x['yx'] for x in mylist if x['xy'] > 1]
+#some2 = [x['yx'] for x in mylist if x['yx'] > 1]
+
+
+# In[75]:
+
+mylist[2]
+
+
+#### 5.2.3 Faculty triplets
+
+### Triplet(Clique) graphs
+
+# In[76]:
+
+# This is still not working but someday I will be able to use deque.
+from collections import deque
+triplet = deque(['filosofija','etnologija','teologija'])
+triplet1 = deque(['filosofija','teologija','etnologija'])
+triplet2 = deque(['etnologija','filosofija','teologija'])
+triplet1.rotate(1)
+trplt = triplet1.rotate(1)
+trplt
+
+
+# In[77]:
+
+headers = [u'pagr', u'gret', u'pagrfak', u'gretfak', u'Weight']
+def haha(x, y, z):
+    filtered = dfe[dfe.pagr.isin([x]) & dfe.gret.isin([y])]
+    
+    if len(filtered) > 0:
+        grpd = filtered.groupby([u'gret', u'pagr']).size()
+        filtered1 = dfe[dfe.pagr.isin([y]) & dfe.gret.isin([z])]
+        
+        if len(filtered1) > 0:
+            grpd1 = filtered1.groupby([u'gret', u'pagr']).size()
+            filtered2 = dfe[dfe.pagr.isin([z]) & dfe.gret.isin([x])]
+            
+            if len(filtered2) > 0:
+                grpd2 = filtered2.groupby([u'gret', u'pagr']).size()
+                ret = [len(filtered), len(filtered1), len(filtered2)]
+                ret1 = len(filtered) * len(filtered1) * len(filtered2)
+                ret2 = [grpd, grpd1, grpd2]
+
+                print(x, y, z, ret1)
+                return[ret, ret1, ret2]
+
+
+# In[78]:
+
+def haha2(x, y, z):
+    filtered = dfe[dfe.pagr.isin([x]) & dfe.gret.isin([y])]
+
+    if len(filtered) > 0:
+        filtered1 = dfe[dfe.pagr.isin([y]) & dfe.gret.isin([z])]
+
+        if len(filtered1) > 0:
+            filtered2 = dfe[dfe.pagr.isin([z]) & dfe.gret.isin([x])]
+
+            if len(filtered2) > 0:
+                ret = [len(filtered), len(filtered1), len(filtered2)]
+                ret1 = len(filtered) * len(filtered1) * len(filtered2)
+                
+                return([x, y, z], ret, ret1)
+
+
+# In[79]:
+
+def ha():
+    thelist = []
+    seenlist = []
+    count = 0
+    for k in proglist:
+        count += 1
+        for l in proglist:
+            for m in proglist:
+                seenlist.append([k, l, m])
+                if[k, l, m] in seenlist is not True:
+                    rez = haha2(k, l, m)
+                    if rez is not None:
+                        thelist.append(deque(rez))
+                        print (rez)
+    return thelist
+
+
+# In[80]:
+
+import pickle
+
+#alltriplets = ha()
+f = open("Data/alltriplets.p","rb")
+
+bin_data = f.read()
+alltriplets = pickle.loads(bin_data)
+
+#f = open("Data/alltriplets_unicode.p","rb")
+#alltriplets  = pickle.load(f)
+
+#pickle.dump(alltriplets, open( "Data/alltriplets.p", "wb" ))
+#pickle.dump(unicode(alltriplets), open( "Data/alltriplets_unicode.p", "wb" ))
+
+
+# In[81]:
+
+#TRIPLETS
+rez = [x for x in alltriplets]
+trip_df = pd.DataFrame(rez)
+
+
+# In[82]:
+
+# Prie dfe prideti PASVERTA OUT
+
+grpd = dfe[dfe.pagrpop > 0].sort('pagrpop', ascending=0)
+drp = grpd.drop_duplicates(cols=['pagr', 'gret'])[['pagr', 'gret', 'pagrpop']]
+THEGRAPH = nx.DiGraph()
+
+
+dfl1 = drp['pagr'].tolist()
+dfl2 = drp['gret'].tolist()
+dfl3 = drp['pagrpop'].tolist()
+dfl = zip(dfl1,
+          dfl2,
+          dfl3)
+
+for x in range(len(dfl1)):
+    THEGRAPH.add_edge(dfl1[x], dfl2[x])
+    THEGRAPH[dfl1[x]][dfl2[x]]['weight'] = float(dfl3[x])
+#PLOT THEGRAPH
+
+
+### STUDSEM
+
+# In[83]:
+
+#rez = [dfe[dfe.pagr == x].groupby('studsem').size() for x in proglist] # get lots of dataframes
+def get_all_studsems(x, pagr_or_gret): #By study program
+    count = 0
+    myarray = []
+    mymainlist = []
+    for z in range(8):
+        count += 1
+        if pagr_or_gret == 'pagr':
+            rez = dfe[dfe.pagr == x]
+        if pagr_or_gret == 'gret':
+            rez = dfe[dfe.gret == x]
+        rez = rez[rez.studsem == count]
+        rez = len(rez)
+    #    mydict[count] = np.array(rez)
+        myarray.append(rez)
+    mymainlist.append(np.array(myarray))
+    return mymainlist
+
+#get_all_studsems('filosofija') # TEST
+
+
+# In[84]:
+
+rez_pagr = [get_all_studsems(x,'pagr') for x in proglist]
+rez_gret = [get_all_studsems(x,'gret') for x in proglist]
+DFT = pd.DataFrame(rez_pagr, proglist, ['studsem_cnts_pagr'])
+DFT['studsem_cnts_gret'] = [x[0] for x in rez_gret]
+#DFT.iloc[1,0]
+#DFT.T.psichologija
+DFT
+
+
+# In[85]:
+
+def get_stats_of_array(arrayy):
+    mylist = []       
+    rez1 = [sum(arrayy[0:4]), sum(arrayy[4:8])] # Pirma metu puse, pries antra
+    rez2 = [sum(arrayy[0::2]), sum(arrayy[1::2])] #Pavasaris pries rudeni.
+    rez3 = [sum(arrayy[0:1]), sum(arrayy[2:3]), sum(arrayy[4:5]), sum(arrayy[6:7])]
+    mylist.extend([rez1,rez2,rez3])
+    return mylist
+
+# Pagr
+REX1 = [get_stats_of_array(DFT.iloc[x,0])[0] for x in range(len(DFT))]
+REX2 = [get_stats_of_array(DFT.iloc[x,0])[1] for x in range(len(DFT))]
+REX3 = [get_stats_of_array(DFT.iloc[x,0])[2] for x in range(len(DFT))]
+
+DFT['prps_pagr'] = REX1
+DFT['pvsrs_rd_pagr'] = REX2
+DFT['ktr_mt_pagr'] = REX3
+
+# Gret
+REX4 = [get_stats_of_array(DFT.iloc[x,1])[0] for x in range(len(DFT))]
+REX5 = [get_stats_of_array(DFT.iloc[x,1])[1] for x in range(len(DFT))]
+REX6 = [get_stats_of_array(DFT.iloc[x,1])[2] for x in range(len(DFT))]
+
+DFT['prps_gret'] = REX4
+DFT['pvsrs_rd_gret'] = REX5
+DFT['ktr_mt_gret'] = REX6
+DFT
+
+
+# In[86]:
+
+def PLOT_GRAPH(axis,threshold):
+    for x in range(len(DFT)):
+        if sum(DFT.iloc[x,axis]) > threshold:
+            plt.plot(DFT.iloc[x,axis] / float(sum(DFT.iloc[x,axis])))
+PLOT_GRAPH(0,20)
+
+
+# In[87]:
+
+PLOT_GRAPH(1,20)
+
+
+# In[88]:
+
+for x in range(len(DFT)):
+    plt.plot(DFT.iloc[x,2])
+
+
+# In[89]:
+
+for x in range(len(DFT)):
+    plt.plot(DFT.iloc[x,3])
+
+
+# In[90]:
+
+for x in range(len(DFT)):
+    plt.plot(DFT.iloc[x,4])
+
+
+# In[95]:
+
+import numpy as np
+import pandas as pd
+from pandas.tools.plotting import parallel_coordinates
+
+a = dfn.loc[:,['m09','m10','m11','m12']].iloc[1]
+b = dfn.loc[:,['m09','m10','m11','m12']].iloc[2]
+c = dfn.loc[:,['m09','m10','m11','m12']].iloc[3]
+
+#dfn
+##[dfn.loc[:,['m09','m10','m11','m12']].iloc[1] for x in range(len(dfn))]
+df = pd.DataFrame([dfn.loc[:,['m09','m10','m11','m12']].iloc[x] 
+                   for x in range(len(dfn))], index=dfn.pavadinimas.values)
+
+#from mpld3 import enable_notebook # Causes soooo much lag!
+#enable_notebook() # Causes soooo much lag! Also too much of axis.
+pd.scatter_matrix(df, 
+                  diagonal='hist',
+                  figsize=(7,7),
+                  alpha=0.3,
+                  marker='o',
+                  c='k',
+                  #c=[programos_fakulteto_spalva[x] for x in df.index],
+                  s=100)
+
+
+### KITA
+
+# Turimea atsižvelgti, į tai, kiek studentų galėjo pasirinkti gretutines.
+
+# Now, lets create something that combines the two numbers.
+
+### Down to the individual level
+
+# In[92]:
+
+get_ipython().magic(u'qtconsole')
+
+
+# The unique cases of choosing academic minor. The cases that oppose the dominant trends. Howe we can find them?
+
+# We did a lot already. But we did not assess any of the individual choices. It is very good, that we have made a throughout analysis of  the environment, but at the end, it is all about choices of individuals. So what are we interested in? We are interested in such things:
+# o Can we find the motivation of the choice?
+# o Can we assess the success of the choice?
+
+# In[93]:
+
+prg1, prg2 = 'filosofija', 'psichologija'
+[len(dfe[dfe['pagr'].isin([prg1]) & dfe['gret'].isin([prg2])])]
+
+
+# In[94]:
+
+# Creating AFG(ALL FACULTY GRAPHS) this will make it easier to go through them. The graph is basically an EgoGraphf of Faculty
+AFG = [nx.DiGraph for x in facultylist] # All Faculty Graphs
+#add edges and nodes
+
+
+# In[95]:
+
+#dft
+
+
+# In[96]:
+
+G.edges(data=True)
+
+
+# In[97]:
+
+# THIS PART IS GOOD!!!
+get_ipython().magic(u'matplotlib inline')
+import networkx as nx
+pos = nx.fruchterman_reingold_layout(G)
+plt.figure(figsize=(15, 15))
+nx.draw_networkx(G, pos, with_labels=True) # unicod eproblems
+plt.show()
+
+
+# In[98]:
+
+x = 'smf'
+dft = dfe[dfe['pagrfak'].isin([x]) & dfe['gretfak'].isin([x])]
+dft = dft.groupby(['pagr','gret']).size()
+smf_internal = [gauk(x) for x in range(10)]
+for x in smf_internal:
+    S.add_edge(x[0],x[1],weight=x[2])
+
+
+# In[ ]:
+
+G.edges(data=True)
+
+
+# In[ ]:
+
+SG.edges(data=True)
+
+
+# In[ ]:
+
+get_ipython().magic(u'matplotlib inline')
+pos = nx.fruchterman_reingold_layout(G)
+plt.figure(figsize=(5, 5))
+#nx.draw_networkx(SG, pos, with_labels=False)
+nx.draw_networkx(G, pos, with_labels=True) # unicod eproblems
+plt.show()
+
+
+# In[ ]:
+
+import matplotlib.pyplot as plt
+
+
+## SKLEARNTHINGS
+
+# In[ ]:
+
+from sklearn.datasets import load_digits
+digits = load_digits()
+
+
+# In[ ]:
+
+print("images shape: %s" % str(digits.images.shape))
+print("targets shape: %s" % str(digits.target.shape))
+
+
+# In[ ]:
+
+get_ipython().magic(u'matplotlib inline')
+plt.matshow(digits.images[0], cmap=plt.cm.Greys)
+
+
+# In[ ]:
+
+digits.target
+
+
+# In[ ]:
+
+digits.data = digits.data / 16.
+
+
+# In[ ]:
+
+X = digits.data.reshape(-1, 64)
+print(X.shape)
+
+
+# In[ ]:
+
+y = digits.target
+print(y.shape)
+
+
+# In[ ]:
+
+print(X)
+
+
+# In[ ]:
+
+from sklearn.decomposition import PCA
+
+
+# In[ ]:
+
+pca = PCA(n_components=2)
+
+
+# In[ ]:
+
+pca.fit(X);
+
+
+# In[ ]:
+
+X_pca = pca.transform(X)
+X_pca.shape
+
+
+# In[ ]:
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y);
+
+
+# In[ ]:
+
+print(pca.mean_.shape)
+print(pca.components_.shape)
+
+
+# In[ ]:
+
+fix, ax = plt.subplots(1, 3)
+ax[0].matshow(pca.mean_.reshape(8, 8), cmap=plt.cm.Greys)
+ax[1].matshow(pca.components_[0, :].reshape(8, 8), cmap=plt.cm.Greys)
+ax[2].matshow(pca.components_[1, :].reshape(8, 8), cmap=plt.cm.Greys);
+
