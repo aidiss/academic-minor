@@ -214,7 +214,10 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-#
+# Jupyter Notebook
+.ipynb_checkoints/
+
+# Data
 data/
 Data/
 Confidential/
